@@ -1,0 +1,30 @@
+trigger:
+  branches:
+    include:
+      - master  # This ensures the pipeline triggers on changes to the master branch
+
+pool:
+  vmImage: 'windows-latest'  # Specifies the VM image for the build agent
+
+steps:
+- checkout: self  # This ensures that the latest code from the repository is checked out
+  fetchDepth: 0
+  persistCredentials: true
+
+- task: Maven@3
+  inputs:
+    mavenPomFile: 'pom.xml'  # Path to your Maven POM file
+    mavenOptions: '-X -Xmx3072m'  # Enable debug logging and specify JVM options for Maven
+    javaHomeOption: 'JDKVersion'  # Specifies the JDK version
+    jdkVersionOption: '17'  # Java 17
+    jdkArchitectureOption: 'x64'  # 64-bit architecture
+    publishJUnitResults: true  # Publish test results to Azure DevOps
+    testResultsFiles: '**/surefire-reports/TEST-*.xml'  # Path to JUnit test results
+    goals: 'test'  # Run the test goal to execute tests
+
+- task: PublishTestResults@2
+  inputs:
+    testResultsFormat: 'JUnit'  # Format of the test results (JUnit)
+    testResultsFiles: '**/surefire-reports/TEST-*.xml'  # Path to your test results
+    failTaskOnFailedTests: true  # Ensures the build fails if any tests fail
+    testRunTitle: 'Publish Test Results'  # Title for the test run results
