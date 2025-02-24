@@ -1,0 +1,2 @@
+FileInputStream fis = new FileInputStream(
+				"C:\\Users\\AnketJadhav\\eclipse-workspace\\Apply-2\\Apply-2\\src\\main\\java\\resources\\data.properties");
