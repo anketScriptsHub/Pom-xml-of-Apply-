@@ -1,0 +1,32 @@
+#It worked.... at least it found testNg.xml
+trigger:
+  branches:
+    include:
+      - master  # This ensures the pipeline triggers on changes to the master branch
+
+pool:
+  name: Default  # Replace with your agent pool name
+  demands:
+    - agent.name -equals SHAnket
+
+steps:
+- checkout: self  # This ensures that the latest code from the repository is checked out
+  fetchDepth: 0
+  persistCredentials: true
+
+- task: Maven@3
+  inputs:
+    mavenPomFile: 'pom.xml'  # Path to your Maven POM file
+    mavenOptions: '-Xmx3072m'  # JVM options for Maven
+    javaHomeOption: 'JDKVersion'  # Specifies the JDK version
+    jdkVersionOption: '23'  # Java 17
+    jdkArchitectureOption: 'x64'  # 64-bit architecture
+    goals: 'test'  # Run the test goal to execute tests
+    options: '-Dsurefire.suiteXmlFiles=testng.xml'  # Specify your TestNG XML file
+
+- task: PublishTestResults@2
+  inputs:
+    testResultsFormat: 'JUnit'  # Format of the test results (JUnit)
+    testResultsFiles: '**/surefire-reports/TEST-*.xml'  # Path to your test results
+    failTaskOnFailedTests: true  # Ensures the build fails if any tests fail
+    testRunTitle: 'Publish Test Results'  # Title for the test run results
