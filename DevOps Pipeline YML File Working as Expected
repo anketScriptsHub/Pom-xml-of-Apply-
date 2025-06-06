@@ -1,0 +1,48 @@
+trigger:
+  branches:
+    include:
+      - master
+
+pool:
+  name: Default
+  demands:
+    - agent.name -equals SHAnket
+
+steps:
+- checkout: self
+  fetchDepth: 0
+  persistCredentials: true
+
+- task: Maven@3
+  inputs:
+    mavenPomFile: 'pom.xml'
+    mavenOptions: '-Xmx3072m'
+    javaHomeOption: 'JDKVersion'
+    jdkVersionOption: '23'
+    jdkArchitectureOption: 'x64'
+    goals: 'test'
+    options: '-Dsurefire.suiteXmlFiles=testng.xml'
+
+- task: PublishTestResults@2
+  inputs:
+    testResultsFormat: 'JUnit'
+    testResultsFiles: '**/surefire-reports/TEST-*.xml'
+    failTaskOnFailedTests: true
+    testRunTitle: 'Publish Test Results'
+
+- task: CopyFiles@2
+  displayName: 'Copy Screenshots'
+  condition: always()  # Ensures this runs even if earlier steps fail
+  inputs:
+    SourceFolder: '$(System.DefaultWorkingDirectory)/screenshots'
+    Contents: '**/*.png'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)/screenshots'
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Screenshots Artifact'
+  condition: always()
+  inputs:
+    pathToPublish: '$(Build.ArtifactStagingDirectory)/screenshots'
+    artifactName: 'Screenshots'
+
+
